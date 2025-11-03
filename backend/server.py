@@ -360,7 +360,7 @@ async def get_funnel_analytics(funnel_id: str, current_user: dict = Depends(get_
 
 # Templates Routes
 @app.get("/api/templates")
-async def get_templates(current_user: dict = Depends(get_current_user)):
+async def get_templates():
     templates = list(templates_collection.find({}))
     for template in templates:
         template.pop("_id", None)
