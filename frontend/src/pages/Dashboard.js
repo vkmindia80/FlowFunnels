@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import { Plus, Eye, Trash2, BarChart3, Edit, FileText } from 'lucide-react';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [funnels, setFunnels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
