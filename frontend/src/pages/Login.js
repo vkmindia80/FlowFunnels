@@ -120,6 +120,21 @@ const Login = () => {
             </Link>
           </p>
         </div>
+
+        {/* Demo Credentials Info */}
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center mb-2">Demo Account Credentials:</p>
+          <div className="bg-gray-50 rounded-lg p-3 text-xs font-mono text-gray-700">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-gray-500">Email:</span>
+              <span className="font-semibold">demo@flowfunnels.com</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Password:</span>
+              <span className="font-semibold">demo123</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
