@@ -144,6 +144,19 @@ const Register = () => {
             </Link>
           </p>
         </div>
+
+        {/* Demo Account Link */}
+        <div className="mt-4 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-purple-50 rounded-lg border border-primary-200">
+            <Sparkles className="w-4 h-4 text-primary-500" />
+            <p className="text-sm text-gray-700">
+              Want to test first?{' '}
+              <Link to="/login" className="text-primary-600 hover:text-primary-700 font-semibold">
+                Try Demo Account
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
