@@ -84,6 +84,19 @@ FlowFunnels simplifies creating and managing complete sales funnels to accelerat
 
 ## 🚀 Getting Started
 
+### 🎮 Quick Demo (No Registration Required!)
+
+**Try FlowFunnels instantly with our demo account:**
+
+```
+Email:    demo@flowfunnels.com
+Password: demo123
+```
+
+Just click the **"Auto-fill Demo Credentials"** button on the login page!
+
+See [DEMO_GUIDE.md](DEMO_GUIDE.md) for complete testing instructions.
+
 ### Prerequisites
 - Python 3.8+
 - Node.js 16+
