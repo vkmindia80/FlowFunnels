@@ -49,6 +49,28 @@ const Login = () => {
           </div>
         )}
 
+        {/* Demo Credentials Banner */}
+        <div className="bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-800 mb-1">Try Demo Account</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Test the platform with pre-configured demo credentials
+              </p>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="inline-flex items-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
+                data-testid="fill-demo-credentials-btn"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Auto-fill Demo Credentials
+              </button>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
