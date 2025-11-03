@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, Sparkles } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +10,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const fillDemoCredentials = () => {
+    setEmail('demo@flowfunnels.com');
+    setPassword('demo123');
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
