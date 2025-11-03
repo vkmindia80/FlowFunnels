@@ -64,6 +64,38 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div>
+        {/* Demo User Welcome Banner */}
+        {user?.email === 'demo@flowfunnels.com' && (
+          <div className="mb-6 bg-gradient-to-r from-primary-500 to-purple-500 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2">Welcome to FlowFunnels Demo! 🎉</h2>
+                <p className="text-primary-50 mb-4">
+                  You're using the demo account. Feel free to explore all features, create funnels, and test the platform. 
+                  When ready, register your own account to build real funnels!
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => navigate('/templates')}
+                    className="px-4 py-2 bg-white text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-sm"
+                  >
+                    Browse Templates
+                  </button>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-primary-400 hover:bg-primary-300 text-white rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    Create Test Funnel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
