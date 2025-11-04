@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Settings, Trash2 } from 'lucide-react';
 
 const PropertiesPanel = ({ selectedElement, sections, onSectionsChange }) => {
-  const [colorPickerOpen, setColorPickerOpen] = useState(null);
-  
   // Find the selected element in sections
   let element = null;
   let elementLocation = null;
