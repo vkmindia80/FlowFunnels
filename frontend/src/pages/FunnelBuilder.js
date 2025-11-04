@@ -165,6 +165,8 @@ const FunnelBuilder = () => {
 
     if (activeId === overId) return;
 
+    console.log('DragOver - Active:', activeId, 'Over:', overId);
+
     // Find active and over elements
     const newSections = JSON.parse(JSON.stringify(sections));
     
