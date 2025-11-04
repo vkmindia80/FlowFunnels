@@ -189,7 +189,18 @@ async def create_funnel(funnel: FunnelCreate, current_user: dict = Depends(get_c
         "published": False
     }
     funnels_collection.insert_one(new_funnel)
-    return {"id": funnel_id, **new_funnel}
+    # Return without MongoDB's _id field
+    return {
+        "id": funnel_id,
+        "user_id": current_user["id"],
+        "name": funnel.name,
+        "description": funnel.description,
+        "pages": [],
+        "settings": {},
+        "created_at": new_funnel["created_at"],
+        "updated_at": new_funnel["updated_at"],
+        "published": False
+    }
 
 @app.get("/api/funnels")
 async def get_funnels(current_user: dict = Depends(get_current_user)):
