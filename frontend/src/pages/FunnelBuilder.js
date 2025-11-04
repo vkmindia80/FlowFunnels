@@ -165,8 +165,6 @@ const FunnelBuilder = () => {
 
     if (activeId === overId) return;
 
-    console.log('DragOver - Active:', activeId, 'Over:', overId);
-
     // Find active and over elements
     const newSections = JSON.parse(JSON.stringify(sections));
     
@@ -190,7 +188,9 @@ const FunnelBuilder = () => {
       });
     });
 
-    // Find over element location
+    if (!activeLocation) return;
+
+    // Find over element location (it might be an element or a column)
     newSections.forEach(section => {
       section.rows.forEach(row => {
         row.columns.forEach(column => {
@@ -205,7 +205,21 @@ const FunnelBuilder = () => {
       });
     });
 
-    if (!activeLocation || !overLocation) return;
+    // If over is not an element, check if it's a column droppable
+    if (!overLocation && over.data?.current?.type === 'column') {
+      overLocation = {
+        sectionId: over.data.current.sectionId,
+        rowId: over.data.current.rowId,
+        columnId: over.data.current.columnId
+      };
+      // When dropping on a column (not on an element), put at the end
+      const overSection = newSections.find(s => s.id === overLocation.sectionId);
+      const overRow = overSection.rows.find(r => r.id === overLocation.rowId);
+      const overColumn = overRow.columns.find(c => c.id === overLocation.columnId);
+      overIndex = overColumn.elements ? overColumn.elements.length : 0;
+    }
+
+    if (!overLocation) return;
 
     // Get the columns
     const activeSection = newSections.find(s => s.id === activeLocation.sectionId);
@@ -216,17 +230,27 @@ const FunnelBuilder = () => {
     const overRow = overSection.rows.find(r => r.id === overLocation.rowId);
     const overColumn = overRow.columns.find(c => c.id === overLocation.columnId);
 
-    if (activeColumn === overColumn) {
+    // Check if we're in the same column
+    const isSameColumn = activeLocation.sectionId === overLocation.sectionId && 
+                         activeLocation.rowId === overLocation.rowId && 
+                         activeLocation.columnId === overLocation.columnId;
+
+    if (isSameColumn) {
       // Same column - reorder
-      const [movedElement] = activeColumn.elements.splice(activeIndex, 1);
-      activeColumn.elements.splice(overIndex, 0, movedElement);
+      if (activeIndex !== overIndex) {
+        const [movedElement] = activeColumn.elements.splice(activeIndex, 1);
+        activeColumn.elements.splice(overIndex, 0, movedElement);
+        handleSectionsChange(newSections);
+      }
     } else {
       // Different column - move
       const [movedElement] = activeColumn.elements.splice(activeIndex, 1);
+      if (!overColumn.elements) {
+        overColumn.elements = [];
+      }
       overColumn.elements.splice(overIndex, 0, movedElement);
+      handleSectionsChange(newSections);
     }
-
-    handleSectionsChange(newSections);
   };
 
   const handleDragEnd = (event) => {
