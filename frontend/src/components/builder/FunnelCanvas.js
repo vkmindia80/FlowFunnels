@@ -77,10 +77,10 @@ const SortableElement = ({ element, isSelected, onSelect, onDelete, onDuplicate 
   );
 };
 
-const DroppableColumn = ({ column, sectionId, rowId, onDrop, selectedElement, onSelect, onDelete, onDuplicate }) => {
+const DroppableColumn = ({ column, sectionId, rowId, onDrop, selectedElement, onSelect, onDelete, onDuplicate, onReorder }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${sectionId}-${rowId}-${column.id}`,
-    data: { sectionId, rowId, columnId: column.id }
+    data: { sectionId, rowId, columnId: column.id, type: 'column' }
   });
 
   const elementIds = (column.elements || []).map(el => el.id);
