@@ -111,7 +111,7 @@ const ElementRenderer = ({ element }) => {
           <div style={{ ...styles, width: '100%', height: '100%' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
-                type=\"checkbox\"
+                type="checkbox"
                 checked={content.checked}
                 readOnly
                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
