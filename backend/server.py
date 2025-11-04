@@ -267,7 +267,18 @@ async def create_page(page: PageCreate, current_user: dict = Depends(get_current
         {"$push": {"pages": page_id}, "$set": {"updated_at": datetime.utcnow()}}
     )
     
-    return {"id": page_id, **new_page}
+    # Return without MongoDB's _id field
+    return {
+        "id": page_id,
+        "funnel_id": page.funnel_id,
+        "name": page.name,
+        "slug": slug,
+        "elements": [],
+        "styles": {},
+        "seo_settings": {},
+        "created_at": new_page["created_at"],
+        "updated_at": new_page["updated_at"]
+    }
 
 @app.get("/api/pages/{page_id}")
 async def get_page(page_id: str, current_user: dict = Depends(get_current_user)):
