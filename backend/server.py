@@ -118,6 +118,7 @@ class PageCreate(BaseModel):
 class PageUpdate(BaseModel):
     name: Optional[str] = None
     elements: Optional[List[Dict[str, Any]]] = None
+    sections: Optional[List[Dict[str, Any]]] = None
     styles: Optional[Dict[str, Any]] = None
     seo_settings: Optional[Dict[str, Any]] = None
 
