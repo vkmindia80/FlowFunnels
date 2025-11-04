@@ -44,6 +44,42 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 43200
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
+# Startup: Ensure demo user exists
+def ensure_demo_user():
+    """Ensure the demo user exists in the database on startup"""
+    demo_email = "demo@flowfunnels.com"
+    demo_password = "demo123"
+    demo_name = "Demo User"
+    
+    existing_user = users_collection.find_one({"email": demo_email})
+    
+    if not existing_user:
+        demo_user = {
+            "id": str(uuid.uuid4()),
+            "email": demo_email,
+            "password_hash": pwd_context.hash(demo_password),
+            "name": demo_name,
+            "created_at": datetime.utcnow(),
+            "subscription_tier": "free"
+        }
+        users_collection.insert_one(demo_user)
+        print(f"✓ Demo user created: {demo_email}")
+    else:
+        # Verify password is correct, update if needed
+        if not pwd_context.verify(demo_password, existing_user["password_hash"]):
+            users_collection.update_one(
+                {"email": demo_email},
+                {"$set": {"password_hash": pwd_context.hash(demo_password)}}
+            )
+            print(f"✓ Demo user password updated: {demo_email}")
+        else:
+            print(f"✓ Demo user exists: {demo_email}")
+
+# Run on startup
+@app.on_event("startup")
+async def startup_event():
+    ensure_demo_user()
+
 # Pydantic Models
 class UserRegister(BaseModel):
     email: EmailStr
