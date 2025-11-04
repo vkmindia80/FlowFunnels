@@ -153,6 +153,80 @@ const FunnelBuilder = () => {
     }
   };
 
+  const handleDragOver = (event) => {
+    const { active, over } = event;
+    
+    if (!over || active.id.toString().startsWith('library-')) {
+      return; // Don't handle library items in dragOver
+    }
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    // Find active and over elements
+    const newSections = JSON.parse(JSON.stringify(sections));
+    
+    let activeLocation = null;
+    let overLocation = null;
+    let activeIndex = -1;
+    let overIndex = -1;
+
+    // Find active element location
+    newSections.forEach(section => {
+      section.rows.forEach(row => {
+        row.columns.forEach(column => {
+          if (column.elements) {
+            const idx = column.elements.findIndex(el => el.id === activeId);
+            if (idx !== -1) {
+              activeLocation = { sectionId: section.id, rowId: row.id, columnId: column.id };
+              activeIndex = idx;
+            }
+          }
+        });
+      });
+    });
+
+    // Find over element location
+    newSections.forEach(section => {
+      section.rows.forEach(row => {
+        row.columns.forEach(column => {
+          if (column.elements) {
+            const idx = column.elements.findIndex(el => el.id === overId);
+            if (idx !== -1) {
+              overLocation = { sectionId: section.id, rowId: row.id, columnId: column.id };
+              overIndex = idx;
+            }
+          }
+        });
+      });
+    });
+
+    if (!activeLocation || !overLocation) return;
+
+    // Get the columns
+    const activeSection = newSections.find(s => s.id === activeLocation.sectionId);
+    const activeRow = activeSection.rows.find(r => r.id === activeLocation.rowId);
+    const activeColumn = activeRow.columns.find(c => c.id === activeLocation.columnId);
+
+    const overSection = newSections.find(s => s.id === overLocation.sectionId);
+    const overRow = overSection.rows.find(r => r.id === overLocation.rowId);
+    const overColumn = overRow.columns.find(c => c.id === overLocation.columnId);
+
+    if (activeColumn === overColumn) {
+      // Same column - reorder
+      const [movedElement] = activeColumn.elements.splice(activeIndex, 1);
+      activeColumn.elements.splice(overIndex, 0, movedElement);
+    } else {
+      // Different column - move
+      const [movedElement] = activeColumn.elements.splice(activeIndex, 1);
+      overColumn.elements.splice(overIndex, 0, movedElement);
+    }
+
+    handleSectionsChange(newSections);
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
@@ -185,46 +259,6 @@ const FunnelBuilder = () => {
               column.elements.push(newElement);
               handleSectionsChange(newSections);
               setSelectedElement(newElement.id);
-            }
-          }
-        }
-      }
-    } else if (over && !active.id.toString().startsWith('library-')) {
-      // Reordering elements within canvas
-      const overData = over.data?.current;
-      
-      if (overData && overData.type === 'column') {
-        const newSections = JSON.parse(JSON.stringify(sections));
-        
-        // Find and remove source element
-        let sourceElement = null;
-        newSections.forEach(section => {
-          section.rows.forEach(row => {
-            row.columns.forEach(column => {
-              if (column.elements) {
-                const index = column.elements.findIndex(el => el.id === active.id);
-                if (index !== -1) {
-                  [sourceElement] = column.elements.splice(index, 1);
-                }
-              }
-            });
-          });
-        });
-
-        if (sourceElement) {
-          // Add to target column
-          const section = newSections.find(s => s.id === overData.sectionId);
-          if (section) {
-            const row = section.rows.find(r => r.id === overData.rowId);
-            if (row) {
-              const column = row.columns.find(c => c.id === overData.columnId);
-              if (column) {
-                if (!column.elements) {
-                  column.elements = [];
-                }
-                column.elements.push(sourceElement);
-                handleSectionsChange(newSections);
-              }
             }
           }
         }
