@@ -152,6 +152,83 @@ const FunnelBuilder = () => {
   };
 
   const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (over && active.id.toString().startsWith('library-')) {
+      // Dragging from library
+      const elementType = active.id.toString().replace('library-', '');
+      const overData = over.data?.current;
+
+      if (overData && overData.type === 'column') {
+        // Create new element
+        const newElement = {
+          id: uuidv4(),
+          type: elementType,
+          size: getDefaultSize(elementType),
+          styles: getDefaultStyles(elementType),
+          content: getDefaultContent(elementType)
+        };
+
+        // Add to the target column
+        const newSections = JSON.parse(JSON.stringify(sections));
+        const section = newSections.find(s => s.id === overData.sectionId);
+        if (section) {
+          const row = section.rows.find(r => r.id === overData.rowId);
+          if (row) {
+            const column = row.columns.find(c => c.id === overData.columnId);
+            if (column) {
+              if (!column.elements) {
+                column.elements = [];
+              }
+              column.elements.push(newElement);
+              handleSectionsChange(newSections);
+              setSelectedElement(newElement.id);
+            }
+          }
+        }
+      }
+    } else if (over && !active.id.toString().startsWith('library-')) {
+      // Reordering elements within canvas
+      const overData = over.data?.current;
+      
+      if (overData && overData.type === 'column') {
+        const newSections = JSON.parse(JSON.stringify(sections));
+        
+        // Find and remove source element
+        let sourceElement = null;
+        newSections.forEach(section => {
+          section.rows.forEach(row => {
+            row.columns.forEach(column => {
+              if (column.elements) {
+                const index = column.elements.findIndex(el => el.id === active.id);
+                if (index !== -1) {
+                  [sourceElement] = column.elements.splice(index, 1);
+                }
+              }
+            });
+          });
+        });
+
+        if (sourceElement) {
+          // Add to target column
+          const section = newSections.find(s => s.id === overData.sectionId);
+          if (section) {
+            const row = section.rows.find(r => r.id === overData.rowId);
+            if (row) {
+              const column = row.columns.find(c => c.id === overData.columnId);
+              if (column) {
+                if (!column.elements) {
+                  column.elements = [];
+                }
+                column.elements.push(sourceElement);
+                handleSectionsChange(newSections);
+              }
+            }
+          }
+        }
+      }
+    }
+    
     setDraggedElement(null);
   };
 
