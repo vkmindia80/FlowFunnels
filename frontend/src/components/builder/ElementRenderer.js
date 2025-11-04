@@ -1,34 +1,25 @@
 import React from 'react';
 
 const ElementRenderer = ({ element }) => {
-  const { type, styles, content, size } = element;
+  const { type, styles, content } = element;
 
   const renderElement = () => {
     switch (type) {
+      case 'heading':
+        return (
+          <div style={{ ...styles, width: '100%', height: '100%', padding: '8px' }}>
+            <h1 style={{ margin: 0, fontSize: styles.fontSize, fontWeight: styles.fontWeight, color: styles.color, textAlign: styles.textAlign }}>
+              {content.text}
+            </h1>
+          </div>
+        );
+
       case 'text':
         return (
-          <div
-            style={{
-              ...styles,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px'
-            }}
-          >
-            {content.tag === 'h1' && (
-              <h1 style={{ margin: 0, fontSize: styles.fontSize }}>{content.text}</h1>
-            )}
-            {content.tag === 'h2' && (
-              <h2 style={{ margin: 0, fontSize: styles.fontSize }}>{content.text}</h2>
-            )}
-            {content.tag === 'h3' && (
-              <h3 style={{ margin: 0, fontSize: styles.fontSize }}>{content.text}</h3>
-            )}
-            {content.tag === 'p' && (
-              <p style={{ margin: 0, fontSize: styles.fontSize }}>{content.text}</p>
-            )}
+          <div style={{ ...styles, width: '100%', height: '100%' }}>
+            <p style={{ margin: 0, fontSize: styles.fontSize, color: styles.color, lineHeight: styles.lineHeight }}>
+              {content.text}
+            </p>
           </div>
         );
 
@@ -38,10 +29,7 @@ const ElementRenderer = ({ element }) => {
             style={{
               ...styles,
               width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              height: '100%'
             }}
           >
             {content.text}
@@ -56,52 +44,10 @@ const ElementRenderer = ({ element }) => {
             style={{
               ...styles,
               width: '100%',
-              height: '100%'
+              height: '100%',
+              objectFit: 'cover'
             }}
           />
-        );
-
-      case 'form':
-        return (
-          <div
-            style={{
-              ...styles,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}
-          >
-            {content.fields?.map((field, index) => (
-              <input
-                key={index}
-                type={field.type}
-                placeholder={field.placeholder}
-                required={field.required}
-                style={{
-                  padding: '10px 12px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  fontSize: '14px'
-                }}
-              />
-            ))}
-            <button
-              style={{
-                padding: '10px 16px',
-                backgroundColor: '#0ea5e9',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              {content.submitText}
-            </button>
-          </div>
         );
 
       case 'video':
@@ -119,6 +65,87 @@ const ElementRenderer = ({ element }) => {
           />
         );
 
+      case 'input':
+        return (
+          <div style={{ width: '100%', height: '100%' }}>
+            {content.label && (
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: '#374151' }}>
+                {content.label}
+              </label>
+            )}
+            <input
+              type={content.type || 'text'}
+              placeholder={content.placeholder}
+              style={{
+                ...styles,
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        );
+
+      case 'textarea':
+        return (
+          <div style={{ width: '100%', height: '100%' }}>
+            {content.label && (
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: '#374151' }}>
+                {content.label}
+              </label>
+            )}
+            <textarea
+              placeholder={content.placeholder}
+              style={{
+                ...styles,
+                width: '100%',
+                height: content.label ? 'calc(100% - 30px)' : '100%',
+                resize: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        );
+
+      case 'checkbox':
+        return (
+          <div style={{ ...styles, width: '100%', height: '100%' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type=\"checkbox\"
+                checked={content.checked}
+                readOnly
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: styles.fontSize || '14px', color: styles.color || '#374151' }}>
+                {content.label}
+              </span>
+            </label>
+          </div>
+        );
+
+      case 'divider':
+        return (
+          <div
+            style={{
+              ...styles,
+              width: '100%',
+              height: '100%'
+            }}
+          />
+        );
+
+      case 'spacer':
+        return (
+          <div
+            style={{
+              ...styles,
+              width: '100%',
+              height: content.height || '40px',
+              backgroundColor: 'transparent'
+            }}
+          />
+        );
+
       default:
         return (
           <div
@@ -132,13 +159,13 @@ const ElementRenderer = ({ element }) => {
               borderRadius: '8px'
             }}
           >
-            <p style={{ color: '#6b7280', fontSize: '14px' }}>Unknown element</p>
+            <p style={{ color: '#6b7280', fontSize: '14px' }}>Unknown: {type}</p>
           </div>
         );
     }
   };
 
-  return <div className="w-full h-full">{renderElement()}</div>;
+  return <div className="w-full h-full pointer-events-none">{renderElement()}</div>;
 };
 
 export default ElementRenderer;
