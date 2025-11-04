@@ -352,84 +352,84 @@ const FunnelCanvas = ({ sections, onSectionsChange, selectedElement, setSelected
   };
 
   return (
-    <div className=\"flex-1 flex flex-col bg-gray-50 overflow-hidden\">
+    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
       {/* Toolbar */}
-      <div className=\"bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between\">
-        <div className=\"flex items-center gap-2\">
+      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode('desktop')}
             className={`p-2 rounded-lg transition-colors ${
               viewMode === 'desktop' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title=\"Desktop View\"
+            title="Desktop View"
           >
-            <Monitor className=\"w-5 h-5\" />
+            <Monitor className="w-5 h-5" />
           </button>
           <button
             onClick={() => setViewMode('tablet')}
             className={`p-2 rounded-lg transition-colors ${
               viewMode === 'tablet' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title=\"Tablet View\"
+            title="Tablet View"
           >
-            <Tablet className=\"w-5 h-5\" />
+            <Tablet className="w-5 h-5" />
           </button>
           <button
             onClick={() => setViewMode('mobile')}
             className={`p-2 rounded-lg transition-colors ${
               viewMode === 'mobile' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title=\"Mobile View\"
+            title="Mobile View"
           >
-            <Smartphone className=\"w-5 h-5\" />
+            <Smartphone className="w-5 h-5" />
           </button>
 
-          <div className=\"w-px h-6 bg-gray-300 mx-2\" />
+          <div className="w-px h-6 bg-gray-300 mx-2" />
 
           <button
             onClick={() => setShowGrid(!showGrid)}
             className={`p-2 rounded-lg transition-colors ${
               showGrid ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'
             }`}
-            title=\"Toggle Grid\"
+            title="Toggle Grid"
           >
-            <Grid3x3 className=\"w-5 h-5\" />
+            <Grid3x3 className="w-5 h-5" />
           </button>
         </div>
 
-        <div className=\"flex items-center gap-3\">
-          <div className=\"flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1\">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1">
             <button
               onClick={() => setZoom(Math.max(50, zoom - 10))}
-              className=\"p-1 hover:bg-white rounded transition-colors\"
-              title=\"Zoom Out\"
+              className="p-1 hover:bg-white rounded transition-colors"
+              title="Zoom Out"
             >
-              <ZoomOut className=\"w-4 h-4 text-gray-600\" />
+              <ZoomOut className="w-4 h-4 text-gray-600" />
             </button>
-            <span className=\"text-sm font-medium text-gray-700 min-w-[60px] text-center\">{zoom}%</span>
+            <span className="text-sm font-medium text-gray-700 min-w-[60px] text-center">{zoom}%</span>
             <button
               onClick={() => setZoom(Math.min(200, zoom + 10))}
-              className=\"p-1 hover:bg-white rounded transition-colors\"
-              title=\"Zoom In\"
+              className="p-1 hover:bg-white rounded transition-colors"
+              title="Zoom In"
             >
-              <ZoomIn className=\"w-4 h-4 text-gray-600\" />
+              <ZoomIn className="w-4 h-4 text-gray-600" />
             </button>
             <button
               onClick={() => setZoom(100)}
-              className=\"p-1 hover:bg-white rounded transition-colors ml-1\"
-              title=\"Reset Zoom\"
+              className="p-1 hover:bg-white rounded transition-colors ml-1"
+              title="Reset Zoom"
             >
-              <Maximize2 className=\"w-4 h-4 text-gray-600\" />
+              <Maximize2 className="w-4 h-4 text-gray-600" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Canvas Area */}
-      <div className=\"flex-1 overflow-auto p-8\" onClick={handleCanvasClick}>
+      <div className="flex-1 overflow-auto p-8" onClick={handleCanvasClick}>
         <div
           ref={setNodeRef}
-          id=\"canvas-drop-zone\"
+          id="canvas-drop-zone"
           className={`canvas-background mx-auto bg-white rounded-lg shadow-lg relative ${
             isOver && draggedElement ? 'ring-4 ring-primary-300 ring-opacity-50' : ''
           }`}
@@ -443,19 +443,19 @@ const FunnelCanvas = ({ sections, onSectionsChange, selectedElement, setSelected
             backgroundSize: showGrid ? '20px 20px' : 'auto'
           }}
         >
-          <div className=\"p-8\">
+          <div className="p-8">
             {sections.length === 0 ? (
-              <div className=\"text-center py-20\">
-                <div className=\"w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center mx-auto mb-4\">
-                  <Plus className=\"w-10 h-10 text-primary-600\" />
+              <div className="text-center py-20">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Plus className="w-10 h-10 text-primary-600" />
                 </div>
-                <h3 className=\"text-xl font-bold text-gray-800 mb-2\">Start Building Your Page</h3>
-                <p className=\"text-gray-500 mb-6\">Add a section to begin building your funnel page</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Start Building Your Page</h3>
+                <p className="text-gray-500 mb-6">Add a section to begin building your funnel page</p>
                 <button
                   onClick={addSection}
-                  className=\"inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold\"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold"
                 >
-                  <Plus className=\"w-5 h-5 mr-2\" />
+                  <Plus className="w-5 h-5 mr-2" />
                   Add First Section
                 </button>
               </div>
@@ -475,18 +475,18 @@ const FunnelCanvas = ({ sections, onSectionsChange, selectedElement, setSelected
                 {/* Add Section Button */}
                 <button
                   onClick={addSection}
-                  className=\"w-full py-4 border-2 border-dashed border-gray-300 hover:border-primary-400 rounded-xl text-gray-500 hover:text-primary-600 transition-all flex items-center justify-center gap-2 bg-white hover:bg-primary-50 group\"
+                  className="w-full py-4 border-2 border-dashed border-gray-300 hover:border-primary-400 rounded-xl text-gray-500 hover:text-primary-600 transition-all flex items-center justify-center gap-2 bg-white hover:bg-primary-50 group"
                 >
-                  <Plus className=\"w-6 h-6\" />
-                  <span className=\"font-semibold text-lg\">Add Section</span>
+                  <Plus className="w-6 h-6" />
+                  <span className="font-semibold text-lg">Add Section</span>
                 </button>
               </>
             )}
 
             {draggedElement && (
-              <div className=\"fixed inset-0 bg-primary-50 bg-opacity-30 border-4 border-dashed border-primary-400 rounded-lg flex items-center justify-center pointer-events-none z-50\">
-                <div className=\"bg-white rounded-xl shadow-2xl p-6 border-2 border-primary-500\">
-                  <p className=\"text-primary-600 font-bold text-lg\">Drop into a column to add {draggedElement}</p>
+              <div className="fixed inset-0 bg-primary-50 bg-opacity-30 border-4 border-dashed border-primary-400 rounded-lg flex items-center justify-center pointer-events-none z-50">
+                <div className="bg-white rounded-xl shadow-2xl p-6 border-2 border-primary-500">
+                  <p className="text-primary-600 font-bold text-lg">Drop into a column to add {draggedElement}</p>
                 </div>
               </div>
             )}
