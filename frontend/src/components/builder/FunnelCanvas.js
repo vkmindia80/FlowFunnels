@@ -316,10 +316,67 @@ const FunnelCanvas = ({ sections, onSectionsChange, selectedElement, setSelected
   const [zoom, setZoom] = useState(100);
   const [viewMode, setViewMode] = useState('desktop');
   const [showGrid, setShowGrid] = useState(false);
+  const [activeId, setActiveId] = useState(null);
 
   const { setNodeRef, isOver } = useDroppable({
     id: 'canvas-droppable',
   });
+
+  // Handle element reordering within columns
+  const handleDragOver = (event) => {
+    const { active, over } = event;
+    
+    if (!over || !active) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    // Check if we're reordering elements within a column
+    if (!activeId.toString().startsWith('library-')) {
+      const overData = over.data.current;
+      
+      if (overData && overData.type === 'column') {
+        // Handle reordering
+        const newSections = JSON.parse(JSON.stringify(sections));
+        
+        // Find source element
+        let sourceSection, sourceRow, sourceColumn, sourceIndex;
+        newSections.forEach(section => {
+          section.rows.forEach(row => {
+            row.columns.forEach(column => {
+              if (column.elements) {
+                const index = column.elements.findIndex(el => el.id === activeId);
+                if (index !== -1) {
+                  sourceSection = section;
+                  sourceRow = row;
+                  sourceColumn = column;
+                  sourceIndex = index;
+                }
+              }
+            });
+          });
+        });
+
+        if (sourceColumn) {
+          const [movedElement] = sourceColumn.elements.splice(sourceIndex, 1);
+          
+          // Find target column
+          const targetSection = newSections.find(s => s.id === overData.sectionId);
+          const targetRow = targetSection.rows.find(r => r.id === overData.rowId);
+          const targetColumn = targetRow.columns.find(c => c.id === overData.columnId);
+          
+          if (!targetColumn.elements) {
+            targetColumn.elements = [];
+          }
+
+          targetColumn.elements.push(movedElement);
+          onSectionsChange(newSections);
+        }
+      }
+    }
+  };
 
   const getCanvasWidth = () => {
     switch (viewMode) {
