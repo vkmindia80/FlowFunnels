@@ -291,6 +291,7 @@ async def create_page(page: PageCreate, current_user: dict = Depends(get_current
         "name": page.name,
         "slug": slug,
         "elements": [],
+        "sections": [],
         "styles": {},
         "seo_settings": {},
         "created_at": datetime.utcnow(),
