@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay } from '@dnd-kit/core';
 import api from '../utils/api';
 import { ArrowLeft, Save, Eye, Plus, Loader, Check } from 'lucide-react';
 import ElementLibrary from '../components/builder/ElementLibrary';
@@ -13,13 +14,22 @@ const FunnelBuilder = () => {
   const [funnel, setFunnel] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(null);
-  const [elements, setElements] = useState([]);
+  const [sections, setSections] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
   const [showAddPage, setShowAddPage] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+  const [draggedElement, setDraggedElement] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     fetchFunnelData();
@@ -27,7 +37,32 @@ const FunnelBuilder = () => {
 
   useEffect(() => {
     if (currentPage) {
-      setElements(currentPage.elements || []);
+      // Convert old elements format to new sections format if needed
+      if (currentPage.elements && Array.isArray(currentPage.elements) && currentPage.elements.length > 0) {
+        // Check if it's old format (has position property)
+        if (currentPage.elements[0]?.position) {
+          // Convert to new format - create one section with one row
+          const convertedSections = [{
+            id: 'section-1',
+            rows: [{
+              id: 'row-1',
+              columns: [{
+                id: 'col-1',
+                width: 12,
+                elements: currentPage.elements.map(el => ({
+                  ...el,
+                  position: undefined // Remove position property
+                }))
+              }]
+            }]
+          }];
+          setSections(convertedSections);
+        } else {
+          setSections(currentPage.elements || []);
+        }
+      } else {
+        setSections(currentPage.sections || []);
+      }
     }
   }, [currentPage]);
 
@@ -60,7 +95,6 @@ const FunnelBuilder = () => {
       setShowAddPage(false);
       setNewPageName('');
       await fetchFunnelData();
-      // Select the newly created page
       setCurrentPage(response.data);
     } catch (error) {
       console.error('Error creating page:', error);
@@ -68,14 +102,14 @@ const FunnelBuilder = () => {
     }
   };
 
-  const savePage = async (elementsToSave) => {
+  const savePage = async (sectionsToSave) => {
     if (!currentPage) return;
 
     setSaving(true);
     setSaved(false);
     try {
       await api.put(`/api/pages/${currentPage.id}`, {
-        elements: elementsToSave
+        sections: sectionsToSave
       });
       setSaved(true);
     } catch (error) {
@@ -88,25 +122,37 @@ const FunnelBuilder = () => {
 
   // Debounced auto-save
   const debouncedSave = useCallback(
-    debounce((elementsToSave) => {
-      savePage(elementsToSave);
+    debounce((sectionsToSave) => {
+      savePage(sectionsToSave);
     }, 2000),
     [currentPage]
   );
 
-  const handleElementsChange = (newElements) => {
-    setElements(newElements);
+  const handleSectionsChange = (newSections) => {
+    setSections(newSections);
     setSaved(false);
-    debouncedSave(newElements);
+    debouncedSave(newSections);
   };
 
   const handleManualSave = () => {
-    savePage(elements);
+    savePage(sections);
   };
 
   const switchPage = (page) => {
     setCurrentPage(page);
     setSelectedElement(null);
+  };
+
+  const handleDragStart = (event) => {
+    const { active } = event;
+    if (active.id.toString().startsWith('library-')) {
+      const elementType = active.id.toString().replace('library-', '');
+      setDraggedElement(elementType);
+    }
+  };
+
+  const handleDragEnd = (event) => {
+    setDraggedElement(null);
   };
 
   if (loading) {
@@ -142,7 +188,6 @@ const FunnelBuilder = () => {
             </button>
           </div>
 
-          {/* Add Page Modal */}
           {showAddPage && (
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
               <div className="glass-dark rounded-2xl shadow-soft-lg border border-white/20 max-w-md w-full p-6 animate-scale-in backdrop-blur-xl">
@@ -190,145 +235,157 @@ const FunnelBuilder = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white">
-      {/* Top Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Back to Dashboard"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
-          </button>
-          <div>
-            <h1 className="text-lg font-bold text-gray-800">{funnel?.name}</h1>
-            <p className="text-sm text-gray-500">{currentPage?.name || 'Select a page'}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Save Status */}
-          <div className="flex items-center gap-2 text-sm">
-            {saving && (
-              <span className="flex items-center text-gray-600">
-                <Loader className="w-4 h-4 mr-1.5 animate-spin" />
-                Saving...
-              </span>
-            )}
-            {saved && !saving && (
-              <span className="flex items-center text-green-600">
-                <Check className="w-4 h-4 mr-1.5" />
-                Saved
-              </span>
-            )}
-            {!saved && !saving && (
-              <span className="text-amber-600">Unsaved changes</span>
-            )}
-          </div>
-
-          <button
-            onClick={handleManualSave}
-            disabled={saving || saved}
-            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg transition-all text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="w-4 h-4 mr-1.5" />
-            Save
-          </button>
-
-          <button
-            onClick={() => setShowAddPage(true)}
-            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:border-primary-400 text-gray-700 rounded-lg transition-all text-sm font-medium"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add Page
-          </button>
-        </div>
-      </div>
-
-      {/* Pages Tab Bar */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-2 flex items-center gap-2 overflow-x-auto">
-        {pages.map((page) => (
-          <button
-            key={page.id}
-            onClick={() => switchPage(page)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              currentPage?.id === page.id
-                ? 'bg-white text-primary-600 shadow-sm'
-                : 'text-gray-600 hover:bg-white/50'
-            }`}
-          >
-            {page.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Main Editor Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Element Library */}
-        <ElementLibrary />
-
-        {/* Center: Canvas */}
-        <FunnelCanvas
-          elements={elements}
-          onElementsChange={handleElementsChange}
-          selectedElement={selectedElement}
-          setSelectedElement={setSelectedElement}
-        />
-
-        {/* Right: Properties Panel */}
-        <PropertiesPanel
-          selectedElement={selectedElement}
-          elements={elements}
-          onElementsChange={handleElementsChange}
-        />
-      </div>
-
-      {/* Add Page Modal */}
-      {showAddPage && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="glass-dark rounded-2xl shadow-soft-lg border border-white/20 max-w-md w-full p-6 animate-scale-in backdrop-blur-xl">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
-              Add New Page
-            </h2>
-            
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="h-screen flex flex-col bg-white">
+        {/* Top Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-700" />
+            </button>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Page Name
-              </label>
-              <input
-                type="text"
-                value={newPageName}
-                onChange={(e) => setNewPageName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && createPage()}
-                className="w-full px-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-soft"
-                placeholder="e.g., Thank You Page"
-                autoFocus
-              />
-            </div>
-
-            <div className="flex items-center gap-3 mt-6">
-              <button
-                onClick={createPage}
-                disabled={!newPageName.trim()}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold"
-              >
-                Add Page
-              </button>
-              <button
-                onClick={() => {
-                  setShowAddPage(false);
-                  setNewPageName('');
-                }}
-                className="px-4 py-3 glass-dark border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl transition-all shadow-soft"
-              >
-                Cancel
-              </button>
+              <h1 className="text-lg font-bold text-gray-800">{funnel?.name}</h1>
+              <p className="text-sm text-gray-500">{currentPage?.name || 'Select a page'}</p>
             </div>
           </div>
+
+          <div className="flex items-center gap-3">
+            {/* Save Status */}
+            <div className="flex items-center gap-2 text-sm">
+              {saving && (
+                <span className="flex items-center text-gray-600">
+                  <Loader className="w-4 h-4 mr-1.5 animate-spin" />
+                  Saving...
+                </span>
+              )}
+              {saved && !saving && (
+                <span className="flex items-center text-green-600">
+                  <Check className="w-4 h-4 mr-1.5" />
+                  Saved
+                </span>
+              )}
+              {!saved && !saving && (
+                <span className="text-amber-600">Unsaved changes</span>
+              )}
+            </div>
+
+            <button
+              onClick={handleManualSave}
+              disabled={saving || saved}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg transition-all text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4 mr-1.5" />
+              Save
+            </button>
+
+            <button
+              onClick={() => setShowAddPage(true)}
+              className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:border-primary-400 text-gray-700 rounded-lg transition-all text-sm font-medium"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Page
+            </button>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Pages Tab Bar */}
+        <div className="bg-gray-50 border-b border-gray-200 px-6 py-2 flex items-center gap-2 overflow-x-auto">
+          {pages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => switchPage(page)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                currentPage?.id === page.id
+                  ? 'bg-white text-primary-600 shadow-sm'
+                  : 'text-gray-600 hover:bg-white/50'
+              }`}
+            >
+              {page.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Main Editor Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left: Element Library */}
+          <ElementLibrary />
+
+          {/* Center: Canvas */}
+          <FunnelCanvas
+            sections={sections}
+            onSectionsChange={handleSectionsChange}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+            draggedElement={draggedElement}
+          />
+
+          {/* Right: Properties Panel */}
+          <PropertiesPanel
+            selectedElement={selectedElement}
+            sections={sections}
+            onSectionsChange={handleSectionsChange}
+          />
+        </div>
+
+        {/* Add Page Modal */}
+        {showAddPage && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="glass-dark rounded-2xl shadow-soft-lg border border-white/20 max-w-md w-full p-6 animate-scale-in backdrop-blur-xl">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
+                Add New Page
+              </h2>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Page Name
+                </label>
+                <input
+                  type="text"
+                  value={newPageName}
+                  onChange={(e) => setNewPageName(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && createPage()}
+                  className="w-full px-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-soft"
+                  placeholder="e.g., Thank You Page"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  onClick={createPage}
+                  disabled={!newPageName.trim()}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold"
+                >
+                  Add Page
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddPage(false);
+                    setNewPageName('');
+                  }}
+                  className="px-4 py-3 glass-dark border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl transition-all shadow-soft"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Drag Overlay */}
+      <DragOverlay>
+        {draggedElement && (
+          <div className="bg-white border-2 border-primary-500 rounded-lg p-4 shadow-lg opacity-80">
+            <span className="font-semibold text-gray-800">{draggedElement}</span>
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 };
 
