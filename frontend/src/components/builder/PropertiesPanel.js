@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
-import { Settings, X, Trash2 } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
 
-const PropertiesPanel = ({ selectedElement, elements, onElementsChange }) => {
-  const element = elements.find(el => el.id === selectedElement);
+const PropertiesPanel = ({ selectedElement, sections, onSectionsChange }) => {
   const [colorPickerOpen, setColorPickerOpen] = useState(null);
+  
+  // Find the selected element in sections
+  let element = null;
+  let elementLocation = null;
+  
+  if (selectedElement) {
+    sections.forEach(section => {
+      section.rows.forEach(row => {
+        row.columns.forEach(column => {
+          if (column.elements) {
+            const found = column.elements.find(el => el.id === selectedElement);
+            if (found) {
+              element = found;
+              elementLocation = { sectionId: section.id, rowId: row.id, columnId: column.id };
+            }
+          }
+        });
+      });
+    });
+  }
 
   if (!element) {
     return (
@@ -22,10 +41,14 @@ const PropertiesPanel = ({ selectedElement, elements, onElementsChange }) => {
   }
 
   const updateElement = (updates) => {
-    const updatedElements = elements.map(el =>
-      el.id === selectedElement ? { ...el, ...updates } : el
-    );
-    onElementsChange(updatedElements);
+    const newSections = JSON.parse(JSON.stringify(sections));
+    const section = newSections.find(s => s.id === elementLocation.sectionId);
+    const row = section.rows.find(r => r.id === elementLocation.rowId);
+    const column = row.columns.find(c => c.id === elementLocation.columnId);
+    const elementIndex = column.elements.findIndex(el => el.id === selectedElement);
+    
+    column.elements[elementIndex] = { ...column.elements[elementIndex], ...updates };
+    onSectionsChange(newSections);
   };
 
   const updateContent = (key, value) => {
@@ -40,20 +63,14 @@ const PropertiesPanel = ({ selectedElement, elements, onElementsChange }) => {
     });
   };
 
-  const updateSize = (key, value) => {
-    updateElement({
-      size: { ...element.size, [key]: parseInt(value) || 0 }
-    });
-  };
-
-  const updatePosition = (key, value) => {
-    updateElement({
-      position: { ...element.position, [key]: parseInt(value) || 0 }
-    });
-  };
-
   const deleteElement = () => {
-    onElementsChange(elements.filter(el => el.id !== selectedElement));
+    const newSections = JSON.parse(JSON.stringify(sections));
+    const section = newSections.find(s => s.id === elementLocation.sectionId);
+    const row = section.rows.find(r => r.id === elementLocation.rowId);
+    const column = row.columns.find(c => c.id === elementLocation.columnId);
+    
+    column.elements = column.elements.filter(el => el.id !== selectedElement);
+    onSectionsChange(newSections);
   };
 
   const updateArrayContent = (key, index, value) => {
@@ -99,586 +116,287 @@ const PropertiesPanel = ({ selectedElement, elements, onElementsChange }) => {
             </span>
           </div>
 
-          {/* Position */}
+          {/* Content Properties */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Position</label>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">X</label>
-                <input
-                  type="number"
-                  value={element.position.x}
-                  onChange={(e) => updatePosition('x', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Y</label>
-                <input
-                  type="number"
-                  value={element.position.y}
-                  onChange={(e) => updatePosition('y', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Content</h4>
+            <div className="space-y-3">
+              {/* Text Content */}
+              {(element.type === 'heading' || element.type === 'text' || element.type === 'button') && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    {element.type === 'button' ? 'Button Text' : 'Text'}
+                  </label>
+                  {element.type === 'text' ? (
+                    <textarea
+                      value={element.content.text || ''}
+                      onChange={(e) => updateContent('text', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      rows={3}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={element.content.text || ''}
+                      onChange={(e) => updateContent('text', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  )}
+                </div>
+              )}
 
-          {/* Size */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Size</label>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Width</label>
-                <input
-                  type="number"
-                  value={element.size.width}
-                  onChange={(e) => updateSize('width', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Height</label>
-                <input
-                  type="number"
-                  value={element.size.height}
-                  onChange={(e) => updateSize('height', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Heading */}
-          {element.type === 'heading' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Heading Text</label>
-                <textarea
-                  value={element.content.text}
-                  onChange={(e) => updateContent('text', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                  rows="2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size</label>
-                <input
-                  type="text"
-                  value={element.styles.fontSize}
-                  onChange={(e) => updateStyles('fontSize', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="36px"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color</label>
-                <input
-                  type="color"
-                  value={element.styles.color}
-                  onChange={(e) => updateStyles('color', e.target.value)}
-                  className="w-full h-10 rounded-lg cursor-pointer"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Text Align</label>
-                <select
-                  value={element.styles.textAlign}
-                  onChange={(e) => updateStyles('textAlign', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
-                </select>
-              </div>
-            </>
-          )}
-
-          {/* Text */}
-          {element.type === 'text' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Text</label>
-                <textarea
-                  value={element.content.text}
-                  onChange={(e) => updateContent('text', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                  rows="4"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Font Size</label>
-                <input
-                  type="text"
-                  value={element.styles.fontSize}
-                  onChange={(e) => updateStyles('fontSize', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="16px"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color</label>
-                <input
-                  type="color"
-                  value={element.styles.color}
-                  onChange={(e) => updateStyles('color', e.target.value)}
-                  className="w-full h-10 rounded-lg cursor-pointer"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Button */}
-          {element.type === 'button' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Button Text</label>
-                <input
-                  type="text"
-                  value={element.content.text}
-                  onChange={(e) => updateContent('text', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Link URL</label>
-                <input
-                  type="text"
-                  value={element.content.url}
-                  onChange={(e) => updateContent('url', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
-                <input
-                  type="color"
-                  value={element.styles.backgroundColor}
-                  onChange={(e) => updateStyles('backgroundColor', e.target.value)}
-                  className="w-full h-10 rounded-lg cursor-pointer"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Text Color</label>
-                <input
-                  type="color"
-                  value={element.styles.color}
-                  onChange={(e) => updateStyles('color', e.target.value)}
-                  className="w-full h-10 rounded-lg cursor-pointer"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Image */}
-          {element.type === 'image' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL</label>
-                <input
-                  type="text"
-                  value={element.content.src}
-                  onChange={(e) => updateContent('src', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Alt Text</label>
-                <input
-                  type="text"
-                  value={element.content.alt}
-                  onChange={(e) => updateContent('alt', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Video */}
-          {element.type === 'video' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Video Embed URL</label>
-              <input
-                type="text"
-                value={element.content.url}
-                onChange={(e) => updateContent('url', e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="https://youtube.com/embed/..."
-              />
-              <p className="text-xs text-gray-500 mt-1">Use YouTube or Vimeo embed URL</p>
-            </div>
-          )}
-
-          {/* Text Input */}
-          {(element.type === 'input' || element.type === 'email' || element.type === 'phone' || 
-            element.type === 'url' || element.type === 'number') && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Placeholder</label>
-                <input
-                  type="text"
-                  value={element.content.placeholder}
-                  onChange={(e) => updateContent('placeholder', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-2">
+              {/* Button URL */}
+              {element.type === 'button' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Link URL
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={element.content.required || false}
-                    onChange={(e) => updateContent('required', e.target.checked)}
-                    className="rounded"
+                    type="text"
+                    value={element.content.url || ''}
+                    onChange={(e) => updateContent('url', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="https://example.com"
                   />
-                  <span className="text-sm text-gray-700">Required field</span>
-                </label>
-              </div>
-              {element.type === 'number' && (
+                </div>
+              )}
+
+              {/* Image Properties */}
+              {element.type === 'image' && (
                 <>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Min</label>
-                      <input
-                        type="number"
-                        value={element.content.min || 0}
-                        onChange={(e) => updateContent('min', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Max</label>
-                      <input
-                        type="number"
-                        value={element.content.max || 100}
-                        onChange={(e) => updateContent('max', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={element.content.src || ''}
+                      onChange={(e) => updateContent('src', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      value={element.content.alt || ''}
+                      onChange={(e) => updateContent('alt', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Image description"
+                    />
                   </div>
                 </>
               )}
-            </>
-          )}
 
-          {/* Textarea */}
-          {element.type === 'textarea' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Placeholder</label>
-                <input
-                  type="text"
-                  value={element.content.placeholder}
-                  onChange={(e) => updateContent('placeholder', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-2">
+              {/* Video URL */}
+              {element.type === 'video' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Video URL
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={element.content.required || false}
-                    onChange={(e) => updateContent('required', e.target.checked)}
-                    className="rounded"
+                    type="text"
+                    value={element.content.url || ''}
+                    onChange={(e) => updateContent('url', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="https://youtube.com/embed/..."
                   />
-                  <span className="text-sm text-gray-700">Required field</span>
-                </label>
-              </div>
-            </>
-          )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use YouTube or Vimeo embed URL
+                  </p>
+                </div>
+              )}
 
-          {/* Checkbox */}
-          {element.type === 'checkbox' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={element.content.checked || false}
-                    onChange={(e) => updateContent('checked', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm text-gray-700">Default checked</span>
-                </label>
-              </div>
-            </>
-          )}
-
-          {/* Radio & Select & MultiSelect */}
-          {(element.type === 'radio' || element.type === 'select' || element.type === 'multiselect') && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Options</label>
-                {(element.content.options || []).map((option, index) => (
-                  <div key={index} className="flex gap-2 mb-2">
+              {/* Form Field Properties */}
+              {['input', 'textarea', 'email', 'phone', 'url', 'number', 'select', 'multiselect', 'checkbox', 'radio', 'toggle', 'date', 'time', 'file', 'range', 'rating', 'progress'].includes(element.type) && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Label
+                    </label>
                     <input
                       type="text"
-                      value={option}
-                      onChange={(e) => updateArrayContent('options', index, e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      value={element.content.label || ''}
+                      onChange={(e) => updateContent('label', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
-                    <button
-                      onClick={() => removeArrayItem('options', index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
                   </div>
-                ))}
-                <button
-                  onClick={() => addArrayItem('options', `Option ${(element.content.options?.length || 0) + 1}`)}
-                  className="w-full px-3 py-2 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-100 transition-colors"
-                >
-                  + Add Option
-                </button>
-              </div>
-            </>
-          )}
 
-          {/* Toggle */}
-          {element.type === 'toggle' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-2">
+                  {['input', 'textarea', 'email', 'phone', 'url', 'number'].includes(element.type) && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Placeholder
+                        </label>
+                        <input
+                          type="text"
+                          value={element.content.placeholder || ''}
+                          onChange={(e) => updateContent('placeholder', e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={element.content.required || false}
+                            onChange={(e) => updateContent('required', e.target.checked)}
+                            className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                          />
+                          Required Field
+                        </label>
+                      </div>
+                    </>
+                  )}
+
+                  {['radio', 'select', 'multiselect'].includes(element.type) && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-2">
+                        Options
+                      </label>
+                      <div className="space-y-2">
+                        {(element.content.options || []).map((option, index) => (
+                          <div key={index} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={option}
+                              onChange={(e) => updateArrayContent('options', index, e.target.value)}
+                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            />
+                            <button
+                              onClick={() => removeArrayItem('options', index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => addArrayItem('options', `Option ${(element.content.options || []).length + 1}`)}
+                          className="w-full px-3 py-2 text-sm border border-dashed border-gray-300 hover:border-primary-400 text-gray-600 rounded-lg transition-colors"
+                        >
+                          + Add Option
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Style Properties */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">Styling</h4>
+            <div className="space-y-3">
+              {/* Text Styling */}
+              {['heading', 'text', 'button'].includes(element.type) && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Font Size
+                    </label>
+                    <input
+                      type="text"
+                      value={element.styles.fontSize || ''}
+                      onChange={(e) => updateStyles('fontSize', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="16px"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={element.styles.color || '#000000'}
+                      onChange={(e) => updateStyles('color', e.target.value)}
+                      className="w-full h-10 px-1 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Text Align
+                    </label>
+                    <select
+                      value={element.styles.textAlign || 'left'}
+                      onChange={(e) => updateStyles('textAlign', e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                      <option value="justify">Justify</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {/* Background Color */}
+              {['button', 'container'].includes(element.type) && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Background Color
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={element.content.checked || false}
-                    onChange={(e) => updateContent('checked', e.target.checked)}
-                    className="rounded"
+                    type="color"
+                    value={element.styles.backgroundColor || '#ffffff'}
+                    onChange={(e) => updateStyles('backgroundColor', e.target.value)}
+                    className="w-full h-10 px-1 border border-gray-300 rounded-lg cursor-pointer"
                   />
-                  <span className="text-sm text-gray-700">Default on</span>
+                </div>
+              )}
+
+              {/* Border Radius */}
+              {['button', 'image', 'video', 'container'].includes(element.type) && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Border Radius
+                  </label>
+                  <input
+                    type="text"
+                    value={element.styles.borderRadius || ''}
+                    onChange={(e) => updateStyles('borderRadius', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="8px"
+                  />
+                </div>
+              )}
+
+              {/* Padding */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Padding
                 </label>
+                <input
+                  type="text"
+                  value={element.styles.padding || ''}
+                  onChange={(e) => updateStyles('padding', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="8px"
+                />
               </div>
-            </>
-          )}
 
-          {/* Date & Time */}
-          {(element.type === 'date' || element.type === 'time') && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-              <input
-                type="text"
-                value={element.content.label}
-                onChange={(e) => updateContent('label', e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
+              {/* Margin */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Margin
+                </label>
+                <input
+                  type="text"
+                  value={element.styles.margin || ''}
+                  onChange={(e) => updateStyles('margin', e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
             </div>
-          )}
-
-          {/* File Upload */}
-          {element.type === 'file' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Accepted Files</label>
-                <input
-                  type="text"
-                  value={element.content.accept || '*'}
-                  onChange={(e) => updateContent('accept', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., .jpg,.png,.pdf"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Range Slider */}
-          {element.type === 'range' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Min</label>
-                  <input
-                    type="number"
-                    value={element.content.min || 0}
-                    onChange={(e) => updateContent('min', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Max</label>
-                  <input
-                    type="number"
-                    value={element.content.max || 100}
-                    onChange={(e) => updateContent('max', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Value</label>
-                  <input
-                    type="number"
-                    value={element.content.value || 50}
-                    onChange={(e) => updateContent('value', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Star Rating */}
-          {element.type === 'rating' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Max Stars</label>
-                  <input
-                    type="number"
-                    value={element.content.maxRating || 5}
-                    onChange={(e) => updateContent('maxRating', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Rating</label>
-                  <input
-                    type="number"
-                    value={element.content.rating || 0}
-                    onChange={(e) => updateContent('rating', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Progress Bar */}
-          {element.type === 'progress' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Label</label>
-                <input
-                  type="text"
-                  value={element.content.label}
-                  onChange={(e) => updateContent('label', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Progress (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={element.content.value || 0}
-                  onChange={(e) => updateContent('value', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Container */}
-          {element.type === 'container' && (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-                <input
-                  type="text"
-                  value={element.content.text}
-                  onChange={(e) => updateContent('text', e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Background Color</label>
-                <input
-                  type="color"
-                  value={element.styles.backgroundColor}
-                  onChange={(e) => updateStyles('backgroundColor', e.target.value)}
-                  className="w-full h-10 rounded-lg cursor-pointer"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Spacer */}
-          {element.type === 'spacer' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Height</label>
-              <input
-                type="text"
-                value={element.content.height}
-                onChange={(e) => updateContent('height', e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="40px"
-              />
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
