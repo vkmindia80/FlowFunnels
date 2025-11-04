@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
-import { Plus, Eye, Trash2, BarChart3, Edit, FileText } from 'lucide-react';
+import { Plus, Eye, Trash2, BarChart3, Edit, FileText, Sparkles, ArrowRight, Layers } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -65,31 +65,37 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div>
+      <div className="max-w-7xl mx-auto">
         {/* Demo User Welcome Banner */}
         {user?.email === 'demo@flowfunnels.com' && (
-          <div className="mb-6 bg-gradient-to-r from-primary-500 to-purple-500 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6" />
+          <div className="mb-8 glass-dark rounded-2xl shadow-soft-lg border border-primary-200/30 p-6 backdrop-blur-xl overflow-hidden relative animate-slide-up">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-400/20 to-blue-400/20 rounded-full blur-3xl" />
+            <div className="relative flex items-start gap-4">
+              <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2">Welcome to FlowFunnels Demo! 🎉</h2>
-                <p className="text-primary-50 mb-4">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                  Welcome to FlowFunnels Demo! 🎉
+                </h2>
+                <p className="text-gray-600 mb-4 leading-relaxed">
                   You're using the demo account. Feel free to explore all features, create funnels, and test the platform. 
                   When ready, register your own account to build real funnels!
                 </p>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => navigate('/templates')}
-                    className="px-4 py-2 bg-white text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-sm"
+                    className="inline-flex items-center px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-800 rounded-xl font-semibold transition-all shadow-soft hover:shadow-soft-lg group"
                   >
+                    <FileText className="w-4 h-4 mr-2" />
                     Browse Templates
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </button>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-primary-400 hover:bg-primary-300 text-white rounded-lg font-semibold transition-colors text-sm"
+                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5"
                   >
+                    <Plus className="w-4 h-4 mr-2" />
                     Create Test Funnel
                   </button>
                 </div>
@@ -99,18 +105,21 @@ const Dashboard = () => {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800" data-testid="dashboard-title">My Funnels</h1>
-            <p className="text-gray-600 mt-1">Create and manage your marketing funnels</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2" data-testid="dashboard-title">
+              My Funnels
+            </h1>
+            <p className="text-gray-600">Create and manage your marketing funnels</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors shadow-lg"
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold group"
             data-testid="create-funnel-btn"
           >
             <Plus className="w-5 h-5 mr-2" />
             Create Funnel
+            <ArrowRight className="w-0 group-hover:w-5 group-hover:ml-2 overflow-hidden transition-all" />
           </button>
         </div>
 
@@ -118,89 +127,105 @@ const Dashboard = () => {
         <div className="mb-8">
           <button
             onClick={() => navigate('/templates')}
-            className="flex items-center px-6 py-3 bg-white border-2 border-primary-500 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+            className="inline-flex items-center px-6 py-3 glass-dark border border-primary-300/50 text-primary-700 hover:border-primary-500 rounded-xl transition-all shadow-soft hover:shadow-soft-lg font-medium group"
             data-testid="browse-templates-btn"
           >
-            <FileText className="w-5 h-5 mr-2" />
+            <Layers className="w-5 h-5 mr-2 text-primary-500" />
             Browse Templates
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
         {/* Funnels Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="glass-dark rounded-2xl border border-gray-200/50 p-6 animate-pulse">
+                <div className="h-6 bg-gray-200 rounded-lg w-3/4 mb-4" />
+                <div className="h-4 bg-gray-200 rounded-lg w-full mb-2" />
+                <div className="h-4 bg-gray-200 rounded-lg w-2/3 mb-6" />
+                <div className="flex gap-2">
+                  <div className="h-10 bg-gray-200 rounded-lg flex-1" />
+                  <div className="h-10 bg-gray-200 rounded-lg w-10" />
+                  <div className="h-10 bg-gray-200 rounded-lg w-10" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : funnels.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-gray-400" />
+          <div className="glass-dark rounded-2xl shadow-soft border border-gray-200/50 p-12 text-center backdrop-blur-xl animate-scale-in">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-soft">
+              <FileText className="w-10 h-10 text-primary-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No funnels yet</h3>
-            <p className="text-gray-600 mb-6">Get started by creating your first funnel or browse our templates</p>
-            <div className="flex items-center justify-center gap-4">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">No funnels yet</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">Get started by creating your first funnel or browse our templates to jumpstart your marketing</p>
+            <div className="flex items-center justify-center gap-4 flex-wrap">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold"
               >
+                <Plus className="w-5 h-5 mr-2" />
                 Create Your First Funnel
               </button>
               <button
                 onClick={() => navigate('/templates')}
-                className="px-6 py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                className="inline-flex items-center px-6 py-3 glass-dark border border-gray-300 hover:border-gray-400 text-gray-700 rounded-xl transition-all shadow-soft hover:shadow-soft-lg font-medium"
               >
+                <FileText className="w-5 h-5 mr-2" />
                 Browse Templates
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
             {funnels.map((funnel) => (
               <div
                 key={funnel.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200"
+                className="group glass-dark rounded-2xl shadow-soft hover:shadow-soft-lg transition-all border border-gray-200/50 hover:border-primary-300/50 backdrop-blur-xl overflow-hidden"
                 data-testid={`funnel-card-${funnel.id}`}
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">{funnel.name}</h3>
-                      <p className="text-sm text-gray-600">{funnel.description || 'No description'}</p>
+                      <h3 className="text-lg font-bold text-gray-800 mb-1 group-hover:text-primary-600 transition-colors">
+                        {funnel.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">{funnel.description || 'No description'}</p>
                     </div>
                     {funnel.published && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                      <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg shadow-soft">
                         Published
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <FileText className="w-4 h-4 mr-1" />
-                    <span>{funnel.pages?.length || 0} pages</span>
+                  <div className="flex items-center text-sm text-gray-500 mb-5 px-3 py-2 bg-gray-50/50 rounded-lg">
+                    <FileText className="w-4 h-4 mr-2 text-primary-500" />
+                    <span className="font-medium">{funnel.pages?.length || 0} pages</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => navigate(`/funnel/${funnel.id}`)}
-                      className="flex-1 flex items-center justify-center px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors text-sm"
+                      className="flex-1 flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all text-sm font-semibold shadow-lg shadow-primary-500/20 hover:shadow-xl hover:-translate-y-0.5"
                       data-testid={`edit-funnel-${funnel.id}`}
                     >
-                      <Edit className="w-4 h-4 mr-1" />
+                      <Edit className="w-4 h-4 mr-1.5" />
                       Edit
                     </button>
                     <button
                       onClick={() => navigate(`/analytics/${funnel.id}`)}
-                      className="flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
+                      className="flex items-center justify-center p-2.5 glass-dark border border-gray-300 hover:border-primary-400 text-gray-700 hover:text-primary-600 rounded-xl transition-all shadow-soft hover:shadow-soft-lg"
                       data-testid={`analytics-funnel-${funnel.id}`}
                     >
-                      <BarChart3 className="w-4 h-4" />
+                      <BarChart3 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => deleteFunnel(funnel.id)}
-                      className="flex items-center justify-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-sm"
+                      className="flex items-center justify-center p-2.5 glass-dark border border-red-200 hover:border-red-400 text-red-600 hover:text-red-700 rounded-xl transition-all shadow-soft hover:shadow-soft-lg"
                       data-testid={`delete-funnel-${funnel.id}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -211,33 +236,35 @@ const Dashboard = () => {
 
         {/* Create Funnel Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Create New Funnel</h2>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="glass-dark rounded-2xl shadow-soft-lg border border-white/20 max-w-md w-full p-6 animate-scale-in backdrop-blur-xl">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
+                Create New Funnel
+              </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Funnel Name
                   </label>
                   <input
                     type="text"
                     value={newFunnelName}
                     onChange={(e) => setNewFunnelName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-soft"
                     placeholder="e.g., Product Launch Funnel"
                     data-testid="funnel-name-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Description (Optional)
                   </label>
                   <textarea
                     value={newFunnelDesc}
                     onChange={(e) => setNewFunnelDesc(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all shadow-soft resize-none"
                     placeholder="Brief description of your funnel"
                     rows="3"
                     data-testid="funnel-description-input"
@@ -249,7 +276,7 @@ const Dashboard = () => {
                 <button
                   onClick={createFunnel}
                   disabled={creating || !newFunnelName.trim()}
-                  className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5 font-semibold"
                   data-testid="create-funnel-submit"
                 >
                   {creating ? 'Creating...' : 'Create Funnel'}
@@ -260,7 +287,7 @@ const Dashboard = () => {
                     setNewFunnelName('');
                     setNewFunnelDesc('');
                   }}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                  className="px-4 py-3 glass-dark border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl transition-all shadow-soft"
                   data-testid="create-funnel-cancel"
                 >
                   Cancel
