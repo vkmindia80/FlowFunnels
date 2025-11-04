@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { DndContext, useSensor, useSensors, PointerSensor, useDroppable } from '@dnd-kit/core';
 import { v4 as uuidv4 } from 'uuid';
 import ElementRenderer from './ElementRenderer';
-import { ZoomIn, ZoomOut, Maximize2, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Monitor, Tablet, Smartphone, Copy, Trash2, Grid3x3 } from 'lucide-react';
 
 const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelectedElement }) => {
   const [zoom, setZoom] = useState(100);
   const [viewMode, setViewMode] = useState('desktop');
   const [draggedElement, setDraggedElement] = useState(null);
+  const [showGrid, setShowGrid] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -17,7 +18,7 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
     })
   );
 
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: 'canvas-droppable',
   });
 
@@ -39,7 +40,22 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
       case 'video': return { width: 560, height: 315 };
       case 'input': return { width: 400, height: 50 };
       case 'textarea': return { width: 400, height: 120 };
+      case 'email': return { width: 400, height: 50 };
+      case 'phone': return { width: 400, height: 50 };
+      case 'url': return { width: 400, height: 50 };
+      case 'number': return { width: 400, height: 50 };
       case 'checkbox': return { width: 300, height: 40 };
+      case 'radio': return { width: 300, height: 120 };
+      case 'select': return { width: 400, height: 50 };
+      case 'multiselect': return { width: 400, height: 120 };
+      case 'toggle': return { width: 300, height: 40 };
+      case 'date': return { width: 400, height: 50 };
+      case 'time': return { width: 400, height: 50 };
+      case 'file': return { width: 400, height: 50 };
+      case 'range': return { width: 400, height: 60 };
+      case 'rating': return { width: 300, height: 60 };
+      case 'progress': return { width: 500, height: 60 };
+      case 'container': return { width: 600, height: 300 };
       case 'divider': return { width: 600, height: 2 };
       case 'spacer': return { width: 600, height: 40 };
       default: return { width: 200, height: 100 };
@@ -90,6 +106,15 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
         };
       case 'input':
       case 'textarea':
+      case 'email':
+      case 'phone':
+      case 'url':
+      case 'number':
+      case 'select':
+      case 'multiselect':
+      case 'date':
+      case 'time':
+      case 'file':
         return {
           padding: '12px',
           border: '1px solid #d1d5db',
@@ -98,11 +123,31 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
           backgroundColor: '#ffffff'
         };
       case 'checkbox':
+      case 'radio':
+      case 'toggle':
         return {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           fontSize: '14px'
+        };
+      case 'range':
+        return {
+          padding: '8px'
+        };
+      case 'rating':
+        return {
+          padding: '8px'
+        };
+      case 'progress':
+        return {
+          padding: '8px'
+        };
+      case 'container':
+        return {
+          backgroundColor: '#f9fafb',
+          padding: '20px',
+          borderRadius: '8px'
         };
       case 'divider':
         return {
@@ -132,11 +177,41 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
       case 'video':
         return { url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' };
       case 'input':
-        return { type: 'text', placeholder: 'Enter your name', label: 'Name' };
+        return { type: 'text', placeholder: 'Enter text', label: 'Text Input', required: false };
       case 'textarea':
-        return { placeholder: 'Enter your message', label: 'Message' };
+        return { placeholder: 'Enter your message', label: 'Message', required: false };
+      case 'email':
+        return { placeholder: 'your@email.com', label: 'Email Address', required: false };
+      case 'phone':
+        return { placeholder: '+1 (555) 000-0000', label: 'Phone Number', required: false };
+      case 'url':
+        return { placeholder: 'https://example.com', label: 'Website URL', required: false };
+      case 'number':
+        return { placeholder: '0', label: 'Number', min: 0, max: 100, step: 1, required: false };
       case 'checkbox':
         return { label: 'I agree to the terms and conditions', checked: false };
+      case 'radio':
+        return { label: 'Choose one option', options: ['Option 1', 'Option 2', 'Option 3'] };
+      case 'select':
+        return { label: 'Select an option', options: ['Option 1', 'Option 2', 'Option 3'] };
+      case 'multiselect':
+        return { label: 'Select multiple', options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'] };
+      case 'toggle':
+        return { label: 'Enable feature', checked: false };
+      case 'date':
+        return { label: 'Select date' };
+      case 'time':
+        return { label: 'Select time' };
+      case 'file':
+        return { label: 'Upload file', accept: '*' };
+      case 'range':
+        return { label: 'Select value', min: 0, max: 100, value: 50 };
+      case 'rating':
+        return { label: 'Rate this', maxRating: 5, rating: 0 };
+      case 'progress':
+        return { label: 'Progress', value: 50 };
+      case 'container':
+        return { text: 'Container Section' };
       case 'divider':
         return {};
       case 'spacer':
@@ -190,6 +265,43 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
     setSelectedElement(elementId);
   };
 
+  const duplicateElement = () => {
+    if (!selectedElement) return;
+    
+    const element = elements.find(el => el.id === selectedElement);
+    if (element) {
+      const newElement = {
+        ...element,
+        id: uuidv4(),
+        position: { x: element.position.x + 20, y: element.position.y + 20 }
+      };
+      onElementsChange([...elements, newElement]);
+      setSelectedElement(newElement.id);
+    }
+  };
+
+  const deleteElement = () => {
+    if (!selectedElement) return;
+    onElementsChange(elements.filter(el => el.id !== selectedElement));
+    setSelectedElement(null);
+  };
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Delete' && selectedElement) {
+        deleteElement();
+      }
+      if (e.key === 'd' && (e.ctrlKey || e.metaKey) && selectedElement) {
+        e.preventDefault();
+        duplicateElement();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElement, elements]);
+
   return (
     <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
       {/* Toolbar */}
@@ -222,6 +334,38 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
           >
             <Smartphone className="w-5 h-5" />
           </button>
+
+          <div className="w-px h-6 bg-gray-300 mx-2" />
+
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`p-2 rounded-lg transition-colors ${
+              showGrid ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+            title="Toggle Grid"
+          >
+            <Grid3x3 className="w-5 h-5" />
+          </button>
+
+          {selectedElement && (
+            <>
+              <div className="w-px h-6 bg-gray-300 mx-2" />
+              <button
+                onClick={duplicateElement}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Duplicate (Ctrl/Cmd+D)"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+              <button
+                onClick={deleteElement}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete (Del)"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -258,13 +402,17 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
           <div
             ref={setNodeRef}
             id="canvas-drop-zone"
-            className="canvas-background mx-auto bg-white rounded-lg shadow-lg relative"
+            className={`canvas-background mx-auto bg-white rounded-lg shadow-lg relative ${
+              isOver && draggedElement ? 'ring-4 ring-primary-300 ring-opacity-50' : ''
+            }`}
             style={{
               width: `${getCanvasWidth()}px`,
               minHeight: '1000px',
               transform: `scale(${zoom / 100})`,
               transformOrigin: 'top center',
-              transition: 'transform 0.2s'
+              transition: 'transform 0.2s',
+              backgroundImage: showGrid ? 'linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)' : 'none',
+              backgroundSize: showGrid ? '20px 20px' : 'auto'
             }}
           >
             {elements.length === 0 && (
@@ -276,11 +424,17 @@ const FunnelCanvas = ({ elements, onElementsChange, selectedElement, setSelected
               </div>
             )}
 
+            {draggedElement && (
+              <div className="absolute inset-0 bg-primary-50 bg-opacity-20 border-2 border-dashed border-primary-400 rounded-lg flex items-center justify-center pointer-events-none">
+                <p className="text-primary-600 font-medium">Drop to add {draggedElement}</p>
+              </div>
+            )}
+
             {elements.map((element) => (
               <div
                 key={element.id}
                 onClick={(e) => handleElementClick(element.id, e)}
-                className={`absolute cursor-move hover:ring-2 hover:ring-primary-300 ${
+                className={`absolute cursor-move hover:ring-2 hover:ring-primary-300 transition-all ${
                   selectedElement === element.id ? 'ring-2 ring-primary-500' : ''
                 }`}
                 style={{
