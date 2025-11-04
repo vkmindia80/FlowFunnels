@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay } from '@dnd-kit/core';
+import { DndContext, useSensor, useSensors, PointerSensor, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../utils/api';
 import { getDefaultSize, getDefaultStyles, getDefaultContent } from '../utils/elementDefaults';
-import { ArrowLeft, Save, Eye, Plus, Loader, Check } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Loader, Check } from 'lucide-react';
 import ElementLibrary from '../components/builder/ElementLibrary';
 import FunnelCanvas from '../components/builder/FunnelCanvas';
 import PropertiesPanel from '../components/builder/PropertiesPanel';
