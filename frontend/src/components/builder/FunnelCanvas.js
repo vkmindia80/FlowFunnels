@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useDroppable, DndContext, DragOverlay } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuidv4 } from 'uuid';
 import ElementRenderer from './ElementRenderer';
-import { getDefaultSize, getDefaultStyles, getDefaultContent } from '../../utils/elementDefaults';
-import { ZoomIn, ZoomOut, Maximize2, Monitor, Tablet, Smartphone, Plus, Trash2, Grid3x3, GripVertical, Columns, Copy } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Monitor, Tablet, Smartphone, Plus, Trash2, Grid3x3, GripVertical, Copy } from 'lucide-react';
 
 const SortableElement = ({ element, isSelected, onSelect, onDelete, onDuplicate }) => {
   const {
